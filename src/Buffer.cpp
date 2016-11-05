@@ -90,6 +90,12 @@ bool Buffer::Reallocate(size_t szNewSize)
         return false;
     }
 
+    // zero memory if buffer expanded
+    if (szNewSize > m_szBuffer)
+    {
+        ::memset(&(static_cast<uint8_t *>(pBuffer)[m_szBuffer]), 0, m_szBuffer - szNewSize);
+    }
+
     m_buffer = pBuffer;
     m_szBuffer = szNewSize;
 
