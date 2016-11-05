@@ -75,7 +75,7 @@ public:
         // zero memory if buffer expanded
         if (szNewSize > m_szBuffer)
         {
-            ::memset(&(static_cast<uint8_t *>(pBuffer)[m_szBuffer]), 0, m_szBuffer - szNewSize);
+            ::memset(&(static_cast<uint8_t *>(pBuffer)[m_szBuffer]), 0, szNewSize - m_szBuffer);
         }
 
         m_buffer = pBuffer;
