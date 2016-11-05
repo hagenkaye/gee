@@ -74,7 +74,7 @@ uint8_t *Buffer::GetBuffer(size_t szIndex, size_t szLength, bool bRealloc)
     return &(static_cast<uint8_t *>(m_buffer)[szIndex]);
 }
 
-size_t Buffer::GetMaxSize()
+size_t Buffer::GetMaxSize() const
 {
     return m_szBuffer;
 }

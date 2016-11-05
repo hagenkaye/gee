@@ -76,7 +76,7 @@ public:
     ///
     /// @return the size of the buffer that was allocated
 
-    size_t GetMaxSize();
+    size_t GetMaxSize() const;
 
     ///
     /// Reallocate the buffer to a new size
