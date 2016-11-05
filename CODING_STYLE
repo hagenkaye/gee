@@ -1,0 +1,17 @@
+All files are to be astyled before committing using these settings
+
+--style=allman
+--indent=spaces=4
+--min-conditional-indent=0
+--align-pointer=name
+--align-reference=name
+--indent-switches
+--indent-preproc-define
+--indent-col1-comments
+--pad-oper
+--pad-header
+--unpad-paren
+--add-brackets
+--keep-one-line-statements
+--convert-tabs
+--remove-comment-prefix
