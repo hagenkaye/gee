@@ -1,5 +1,3 @@
-#include "Buffer.h"
-
 ///
 /// @file
 /// @author Hagen Kaye <hagen.kaye@gmail.com>
@@ -27,78 +25,79 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 /// SOFTWARE.
 ///
-/// @section DESCRIPTION
-///
-/// A class that dynamically allocates memory
-///
+#include "Buffer.h"
 
+class BufferImpl : public Buffer
+{
+public:
+    BufferImpl(size_t szBuffer)
+    {
+        m_buffer = ::calloc(szBuffer, 1);
+        if (m_buffer)
+        {
+            m_szBuffer = szBuffer;
+        }
+    }
+
+    virtual uint8_t *GetBuffer(size_t szIndex, size_t szLength, bool bRealloc) override
+    {
+        // test to see if buffer is out of bounds
+        if ((szIndex + szLength) > m_szBuffer)
+        {
+            if (!bRealloc)
+            {
+                return nullptr;
+            }
+            if (!Reallocate(szIndex + szLength))
+            {
+                return nullptr;
+            }
+        }
+        return &(static_cast<uint8_t *>(m_buffer)[szIndex]);
+    }
+
+    virtual size_t GetMaxSize() const override
+    {
+        return m_szBuffer;
+    }
+
+    virtual bool Reallocate(size_t szNewSize) override
+    {
+        void *pBuffer = ::realloc(m_buffer, szNewSize);
+
+        // reallocation failed if pBuffer is null and szNewsize != 0
+        // note: if szNewSize == 0 then realloc will free memory
+        if (pBuffer == nullptr && szNewSize != 0)
+        {
+            return false;
+        }
+
+        // zero memory if buffer expanded
+        if (szNewSize > m_szBuffer)
+        {
+            ::memset(&(static_cast<uint8_t *>(pBuffer)[m_szBuffer]), 0, m_szBuffer - szNewSize);
+        }
+
+        m_buffer = pBuffer;
+        m_szBuffer = szNewSize;
+
+        return true;
+    }
+
+    ~BufferImpl()
+    {
+        if (m_buffer)
+        {
+            ::free(m_buffer);
+        }
+    }
+
+private:
+    void *m_buffer;
+    size_t m_szBuffer;
+};
 
 Buffer::Ptr Buffer::Create(size_t szBuffer)
 {
-    return make_shared<Buffer>(szBuffer);
+    return make_shared<BufferImpl>(szBuffer);
 }
-
-Buffer::Buffer(size_t szBuffer)
-{
-    m_buffer = ::calloc(szBuffer, 1);
-    if (m_buffer)
-    {
-        m_szBuffer = szBuffer;
-    }
-}
-
-Buffer::~Buffer()
-{
-    if (m_buffer)
-    {
-        ::free(m_buffer);
-    }
-    m_buffer = nullptr;
-    m_szBuffer = 0;
-}
-
-uint8_t *Buffer::GetBuffer(size_t szIndex, size_t szLength, bool bRealloc)
-{
-    // test to see if buffer is out of bounds
-    if ((szIndex + szLength) > m_szBuffer)
-    {
-        if (!bRealloc)
-        {
-            return nullptr;
-        }
-        if (!Reallocate(szIndex + szLength))
-        {
-            return nullptr;
-        }
-    }
-    return &(static_cast<uint8_t *>(m_buffer)[szIndex]);
-}
-
-size_t Buffer::GetMaxSize() const
-{
-    return m_szBuffer;
-}
-
-bool Buffer::Reallocate(size_t szNewSize)
-{
-    void *pBuffer = ::realloc(m_buffer, szNewSize);
-
-    // reallocation failed if pBuffer is null and szNewsize != 0
-    // note: if szNewSize == 0 then realloc will free memory
-    if (pBuffer == nullptr && szNewSize != 0)
-    {
-        return false;
-    }
-
-    // zero memory if buffer expanded
-    if (szNewSize > m_szBuffer)
-    {
-        ::memset(&(static_cast<uint8_t *>(pBuffer)[m_szBuffer]), 0, m_szBuffer - szNewSize);
-    }
-
-    m_buffer = pBuffer;
-    m_szBuffer = szNewSize;
-
-    return true;
-}
-

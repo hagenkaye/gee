@@ -1,7 +1,5 @@
 #ifndef Buffer_h
 #define Buffer_h
-#include "Platform.h"
-
 ///
 /// @file
 /// @author Hagen Kaye <hagen.kaye@gmail.com>
@@ -33,6 +31,7 @@
 ///
 /// A class that dynamically allocates memory
 ///
+#include "Platform.h"
 
 class Buffer
 {
@@ -49,19 +48,6 @@ public:
     static Ptr Create(size_t szBuffer = 80);
 
     ///
-    /// Constructor
-    ///
-    /// @param[in] szBuffer size of buffer to allocate in bytes
-
-    Buffer(size_t szBuffer = 80);
-
-    ///
-    /// Destructor
-    ///
-
-    virtual ~Buffer();
-
-    ///
     /// Return a pointer to the buffer suitable for processing text
     ///
     /// @param[in] szIndex index offset into the allocated buffer
@@ -69,14 +55,14 @@ public:
     /// @param[in] bRealloc if true, then realloc buffer to accomodate index and length
     /// @return a pointer to the buffer, null if out of bounds
 
-    uint8_t *GetBuffer(size_t szIndex = 0, size_t szLength = 0, bool bRealloc = false);
+    virtual uint8_t *GetBuffer(size_t szIndex = 0, size_t szLength = 0, bool bRealloc = false) = 0;
 
     ///
     /// Get the allocated size of the buffer
     ///
     /// @return the size of the buffer that was allocated
 
-    size_t GetMaxSize() const;
+    virtual size_t GetMaxSize() const = 0;
 
     ///
     /// Reallocate the buffer to a new size
@@ -84,13 +70,13 @@ public:
     /// @param[in] szNewSize the new size of the buffer
     /// @return true if allocation was successful, false otherwise
 
-    bool Reallocate(size_t szNewSize);
+    virtual bool Reallocate(size_t szNewSize) = 0;
 
-private:
-    void *m_buffer;
-    size_t m_szBuffer;
+    ///
+    /// Destructor
+    ///
+
+    virtual ~Buffer() {}
 };
-
-
 
 #endif
