@@ -1,5 +1,3 @@
-#include "LineBuffer.h"
-
 ///
 /// @file
 /// @author Hagen Kaye <hagen.kaye@gmail.com>
@@ -31,32 +29,43 @@
 ///
 /// A class that stores and operates on a line of text
 ///
+#include "LineBuffer.h"
+
+class LineBufferImpl : public LineBuffer
+{
+public:
+	LineBufferImpl(size_t szBuffer)
+    	: m_bOwnsBuffer(true)
+    	, m_szIndexBuffer(0)
+	{
+    	m_pBuffer = Buffer::Create(szBuffer);
+	}
+
+	LineBufferImpl(Buffer::Ptr pBuffer, size_t szIndex, bool bOwnsBuffer)
+    	: m_bOwnsBuffer(bOwnsBuffer)
+    	, m_pBuffer(pBuffer)
+    	, m_szIndexBuffer(szIndex)
+	{
+	}
+
+	~LineBufferImpl()
+	{
+    	m_pBuffer.reset();
+	}
+
+private:
+    bool m_bOwnsBuffer;
+    Buffer::Ptr m_pBuffer;
+    size_t m_szIndexBuffer;
+};
 
 LineBuffer::Ptr LineBuffer::Create(size_t szBuffer)
 {
-    return make_shared<LineBuffer>(szBuffer);
+    return make_shared<LineBufferImpl>(szBuffer);
 }
 
 LineBuffer::Ptr LineBuffer::Create(Buffer::Ptr pBuffer, size_t szIndex, bool bOwnsBuffer)
 {
-    return make_shared<LineBuffer>(pBuffer, szIndex, bOwnsBuffer);
+    return make_shared<LineBufferImpl>(pBuffer, szIndex, bOwnsBuffer);
 }
 
-LineBuffer::LineBuffer(size_t szBuffer)
-    : m_bOwnsBuffer(true)
-    , m_szIndexBuffer(0)
-{
-    m_pBuffer = Buffer::Create(szBuffer);
-}
-
-LineBuffer::LineBuffer(Buffer::Ptr pBuffer, size_t szIndex, bool bOwnsBuffer)
-    : m_bOwnsBuffer(bOwnsBuffer)
-    , m_pBuffer(pBuffer)
-    , m_szIndexBuffer(szIndex)
-{
-}
-
-LineBuffer::~LineBuffer()
-{
-    m_pBuffer.reset();
-}

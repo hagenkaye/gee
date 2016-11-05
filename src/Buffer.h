@@ -72,6 +72,7 @@ public:
 
     virtual bool Reallocate(size_t szNewSize) = 0;
 
+protected:
     ///
     /// Destructor
     ///

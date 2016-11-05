@@ -1,8 +1,5 @@
 #ifndef LineBuffer_h
 #define LineBuffer_h
-#include "Platform.h"
-#include "Buffer.h"
-
 ///
 /// @file
 /// @author Hagen Kaye <hagen.kaye@gmail.com>
@@ -34,6 +31,8 @@
 ///
 /// A class that stores and operates on a line of text
 ///
+#include "Platform.h"
+#include "Buffer.h"
 
 class LineBuffer;
 typedef std::list<shared_ptr<LineBuffer>> LineBuffers;
@@ -68,36 +67,13 @@ public:
 
     static Ptr Create(Buffer::Ptr pBuffer, size_t szIndex = 0, bool bOwnsBuffer = false);
 
-    ///
-    /// Constructor - allocate a new buffer
-    ///
-    /// A LineBuffer created with this method will own the Buffer, in other
-    /// words it may reallocate the buffer if a new size is required
-    ///
-    /// @param[in] szBuffer size of buffer to allocate in bytes
-
-    LineBuffer(size_t szBuffer = 80);
-
-    ///
-    /// Constructor - create a LineBuffer from an existing Buffer object
-    ///
-    /// param[in] pBuffer The buffer object to use
-    /// param[in] szIndex The index into pBuffer
-    /// param[in] bOwnsBuffer if true then the LineBuffer will own the Buffer
-    ///           object
-
-    LineBuffer(Buffer::Ptr pBuffer, size_t szIndex = 0, bool bOwnsBuffer = false);
-
+protected:
     ///
     /// Destructor
     ///
 
-    ~LineBuffer();
+    ~LineBuffer() {}
 
-private:
-    bool m_bOwnsBuffer;
-    Buffer::Ptr m_pBuffer;
-    size_t m_szIndexBuffer;
 };
 
 #endif
