@@ -35,6 +35,11 @@
 /// A class that stores and operates on a line of text
 ///
 
+class LineBuffer;
+typedef std::list<shared_ptr<LineBuffer>> LineBuffers;
+typedef LineBuffers::iterator LineBuffersIt;
+typedef shared_ptr<LineBuffers> LineBuffersPtr;
+
 class LineBuffer
 {
 public:
