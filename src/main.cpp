@@ -1,0 +1,6 @@
+#include "Platform.h"
+
+int main()
+{
+    return 0;
+}
