@@ -1,7 +1,5 @@
-#ifndef LineBuffer_h
-#define LineBuffer_h
 ///
-/// @file
+/// @file LineBuffer.h
 /// @author Hagen Kaye <hagen.kaye@gmail.com>
 ///
 /// @section LICENSE
@@ -31,6 +29,8 @@
 ///
 /// A class that stores and operates on a line of text
 ///
+#ifndef LineBuffer_h
+#define LineBuffer_h
 #include "Platform.h"
 #include "Buffer.h"
 

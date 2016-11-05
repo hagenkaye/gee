@@ -1,7 +1,5 @@
-#ifndef Buffer_h
-#define Buffer_h
 ///
-/// @file
+/// @file Buffer.h
 /// @author Hagen Kaye <hagen.kaye@gmail.com>
 ///
 /// @section LICENSE
@@ -31,6 +29,8 @@
 ///
 /// A class that dynamically allocates memory
 ///
+#ifndef Buffer_h
+#define Buffer_h
 #include "Platform.h"
 
 class Buffer
