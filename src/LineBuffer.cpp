@@ -1,5 +1,5 @@
 ///
-/// @file
+/// @file LineBuffer.cpp
 /// @author Hagen Kaye <hagen.kaye@gmail.com>
 ///
 /// @section LICENSE
