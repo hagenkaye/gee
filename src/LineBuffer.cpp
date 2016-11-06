@@ -54,6 +54,7 @@ public:
     }
 
 private:
+    /// counts the number of UTF8 characters in the line
     size_t numberOfChars()
     {
         size_t szCount = 0;
@@ -70,6 +71,47 @@ private:
             }
         }
         return szCount;
+    }
+
+    ///
+    /// gets a pointer at n UTF8 character in the buffer
+    ///
+    /// @param[in] szPos position in line
+    /// @return a pointer to that character.  If szPos points past the last
+    ///         last character, it returns the pointer to the end of the line
+    ///         which would be the null terminator
+    uint8_t *getPntrAtPos(size_t szPos)
+    {
+        uint8_t *pntr = m_pBuffer->GetBuffer(m_szIndexBuffer);
+        return getPntrAtPos(pntr, szPos);
+    }
+
+    /// given a pointer to a buffer, returns a pointer n chars away
+    ///
+    /// @param[in] pntr a pointer in the buffer
+    /// @param[in] szPos number of characters to advance pntr
+    /// @return a pointer szPos characters away, if szPos points past the
+    ///         end of the line, it returns the pointer to the eol, which
+    ///         would be the null terminator
+    uint8_t *getPntrAtPos(uint8_t *pntr, size_t szPos)
+    {
+        size_t szCurrentPos = 0;
+        if (pntr)
+        {
+            while (*pntr)
+            {
+                if (szCurrentPos == szPos)
+                {
+                    break;
+                }
+                if (((*pntr & 0x80) == 0) || (*pntr & 0xC0) == 0xC0)
+                {
+                    szCurrentPos++;
+                }
+                pntr++;
+            }
+        }
+        return pntr;
     }
 
 private:
