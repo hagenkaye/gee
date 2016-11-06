@@ -34,24 +34,43 @@
 class LineBufferImpl : public LineBuffer
 {
 public:
-	LineBufferImpl(size_t szBuffer)
-    	: m_bOwnsBuffer(true)
-    	, m_szIndexBuffer(0)
-	{
-    	m_pBuffer = Buffer::Create(szBuffer);
-	}
+    LineBufferImpl(size_t szBuffer)
+        : m_bOwnsBuffer(true)
+        , m_szIndexBuffer(0)
+    {
+        m_pBuffer = Buffer::Create(szBuffer);
+    }
 
-	LineBufferImpl(Buffer::Ptr pBuffer, size_t szIndex, bool bOwnsBuffer)
-    	: m_bOwnsBuffer(bOwnsBuffer)
-    	, m_pBuffer(pBuffer)
-    	, m_szIndexBuffer(szIndex)
-	{
-	}
+    LineBufferImpl(Buffer::Ptr pBuffer, size_t szIndex, bool bOwnsBuffer)
+        : m_bOwnsBuffer(bOwnsBuffer)
+        , m_pBuffer(pBuffer)
+        , m_szIndexBuffer(szIndex)
+    {
+    }
 
-	~LineBufferImpl()
-	{
-    	m_pBuffer.reset();
-	}
+    ~LineBufferImpl()
+    {
+        m_pBuffer.reset();
+    }
+
+private:
+    size_t numberOfChars()
+    {
+        size_t szCount = 0;
+        uint8_t *pntr = m_pBuffer->GetBuffer(m_szIndexBuffer);
+        if (pntr)
+        {
+            while (*pntr)
+            {
+                if (((*pntr & 0x80) == 0) || (*pntr & 0xC0) == 0xC0)
+                {
+                    szCount++;
+                }
+                pntr++;
+            }
+        }
+        return szCount;
+    }
 
 private:
     bool m_bOwnsBuffer;
