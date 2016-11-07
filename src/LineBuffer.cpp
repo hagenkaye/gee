@@ -48,6 +48,14 @@ public:
     {
     }
 
+	Ptr Split(size_t szPos) override
+	{
+		uint8_t *pntr = getPntrAtPos(szPos);
+		Ptr pNextLine = LineBuffer::Create(pntr);
+		*pntr = 0;
+		return pNextLine;
+	}
+
     ~LineBufferImpl()
     {
         m_pBuffer.reset();
@@ -82,6 +90,15 @@ private:
     ///         which would be the null terminator
     uint8_t *getPntrAtPos(size_t szPos)
     {
+		// at this point, if we haven't allocated any memory for this buffer
+		// we need to do it now, allocate at least one char for an empty line 
+		if (!m_pBuffer || m_pBuffer->GetBuffer(m_szIndexBuffer) == nullptr)
+		{
+			m_pBuffer = Buffer::Create(1);
+			m_bOwnsBuffer = true;
+			m_szIndexBuffer = 0;
+		}
+	
         uint8_t *pntr = m_pBuffer->GetBuffer(m_szIndexBuffer);
         return getPntrAtPos(pntr, szPos);
     }
@@ -113,6 +130,41 @@ private:
         }
         return pntr;
     }
+
+	/// reallocate the buffer to a new size
+	///
+	/// @param[in] szNewBuffer the size of the buffer to reallocate
+
+	void reallocateBuffer(size_t szNewBuffer)
+	{
+		if (m_bOwnsBuffer)
+		{
+			// add null terminator to requested size
+			m_pBuffer->Reallocate(szNewBuffer+1);
+		}
+		else
+		{
+			Buffer::Ptr pNewBuffer = Buffer::Create(szNewBuffer+1);
+			
+			// do we need to copy anything from the existing buffer?
+			const char *pkcSource = reinterpret_cast<const char *>(m_pBuffer->GetBuffer(m_szIndexBuffer));
+			size_t szSource = 0;
+			if (pkcSource && (szSource = ::strlen(pkcSource)))
+			{
+				if (szSource > szNewBuffer)
+				{
+					szSource = szNewBuffer;
+				}
+				char *pcDest = reinterpret_cast<char *>(pNewBuffer->GetBuffer());
+				::strncpy(pcDest, pkcSource, szSource);
+			}
+
+			// we now own the buffer
+			m_pBuffer = pNewBuffer;
+			m_szIndexBuffer = 0;
+			m_bOwnsBuffer = true;
+		}		
+	}
 
 private:
     bool m_bOwnsBuffer;

@@ -67,6 +67,16 @@ public:
 
     static Ptr Create(Buffer::Ptr pBuffer, size_t szIndex = 0, bool bOwnsBuffer = false);
 
+	///
+	/// Splits a line into two LineBuffers
+	///
+	/// @param[in] szPos position in line buffer to make the split.  If szPos points past
+	///            the end of the line, then the line is left intact and a blank line is
+	///            returned
+	/// @return a LineBuffer Ptr to the second half of the line
+
+	virtual Ptr Split(size_t szPos) = 0;
+
 protected:
     ///
     /// Destructor
