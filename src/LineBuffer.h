@@ -33,6 +33,7 @@
 #define LineBuffer_h
 #include "Platform.h"
 #include "Buffer.h"
+#include "Utilities.h"
 
 class LineBuffer;
 typedef std::list<shared_ptr<LineBuffer>> LineBuffers;
@@ -51,41 +52,54 @@ public:
     /// A LineBuffer created with this method will own the Buffer, in other
     /// words it may reallocate the buffer if a new size is required
     ///
-    /// @param[in] szBuffer size of buffer to allocate in bytes
+    /// @param[in] szBytes size of buffer to allocate in bytes
     /// @return a shared_ptr to a LineBuffer
 
-    static Ptr Create(size_t szBuffer = 80);
+    static Ptr Create(size_t szBytes = 80);
 
     ///
     /// Creates a LineBuffer from an existing Buffer object
     ///
     /// param[in] pBuffer The buffer object to use
-    /// param[in] szIndex The index into pBuffer
+    /// param[in] szOffset The index into pBuffer
     /// param[in] bOwnsBuffer if true then the LineBuffer will own the Buffer
     ///           object
     /// @return a shared_ptr to a LineBuffer
 
-    static Ptr Create(Buffer::Ptr pBuffer, size_t szIndex = 0, bool bOwnsBuffer = false);
+    static Ptr Create(Buffer::Ptr pBuffer, size_t szOffset = 0, bool bOwnsBuffer = false);
 
     ///
     /// Creates a LineBuffer from a string
     ///
     /// A buffer is allocated and the string is copied into the line buffer
     ///
-    /// param[in] pkBuffer a null terminated string to copy into the buffer
+    /// param[in] pkcBuffer a null terminated string to copy into the buffer
     /// @return a shared_ptr to a LineBuffer
 
-    static Ptr Create(const uint8_t *pkBuffer);
+    static Ptr Create(const char *pkcBuffer);
 
     ///
     /// Splits a line into two LineBuffers
     ///
-    /// @param[in] szPos position in line buffer to make the split.  If szPos points past
+    /// @param[in] szPos character position in line buffer to make the split.  If szPos points past
     ///            the end of the line, then the line is left intact and a blank line is
     ///            returned
     /// @return a LineBuffer Ptr to the second half of the line
 
     virtual Ptr Split(size_t szPos) = 0;
+
+    ///
+    /// Writes out a portion of the buffer to the by calling the supplied callback
+    ///
+    /// param[in] callback Callback function to callback
+    /// param[in] szPos character position in LineBuffer to start
+    /// param[in] szCount maximum characters to WriteBuffer
+
+    virtual void WriteBuffer(WriteBufferCallback callback, size_t szPos = 0, size_t szCount = std::numeric_limits<size_t>::max()) = 0;
+
+    virtual void InsertChars(const char *pkcBuffer, size_t szPos = std::numeric_limits<size_t>::max()) = 0;
+
+    virtual void InsertChars(Ptr pLineBuffer, size_t szPos = std::numeric_limits<size_t>::max()) = 0;
 
 protected:
     ///

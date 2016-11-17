@@ -30,56 +30,50 @@
 class BufferImpl : public Buffer
 {
 public:
-    BufferImpl(size_t szBuffer)
+    BufferImpl(size_t szBytes)
     {
-        m_buffer = ::calloc(szBuffer, 1);
+        m_buffer = reinterpret_cast<char *>(::calloc(szBytes, 1));
         if (m_buffer)
         {
-            m_szBuffer = szBuffer;
+            m_szBytes = szBytes;
         }
     }
 
-    virtual uint8_t *GetBuffer(size_t szIndex, size_t szLength, bool bRealloc) override
+    virtual char *GetBuffer(size_t szOffset, size_t szBytes, bool bRealloc) override
     {
         // test to see if buffer is out of bounds
-        if ((szIndex + szLength) > m_szBuffer)
+        if ((szOffset + szBytes) > m_szBytes)
         {
             if (!bRealloc)
             {
                 return nullptr;
             }
-            if (!Reallocate(szIndex + szLength))
+            if (!Reallocate(szOffset + szBytes))
             {
                 return nullptr;
             }
         }
-        return &(static_cast<uint8_t *>(m_buffer)[szIndex]);
+        return &m_buffer[szOffset];
     }
 
     virtual size_t GetMaxSize() const override
     {
-        return m_szBuffer;
+        return m_szBytes;
     }
 
-    virtual bool Reallocate(size_t szNewSize) override
+    virtual bool Reallocate(size_t szBytes) override
     {
-        void *pBuffer = ::realloc(m_buffer, szNewSize);
+        void *pBuffer = ::realloc(m_buffer, szBytes);
 
         // reallocation failed if pBuffer is null and szNewsize != 0
         // note: if szNewSize == 0 then realloc will free memory
-        if (pBuffer == nullptr && szNewSize != 0)
+        if (pBuffer == nullptr && szBytes != 0)
         {
             return false;
         }
 
-        // zero memory if buffer expanded
-        if (szNewSize > m_szBuffer)
-        {
-            ::memset(&(static_cast<uint8_t *>(pBuffer)[m_szBuffer]), 0, szNewSize - m_szBuffer);
-        }
-
-        m_buffer = pBuffer;
-        m_szBuffer = szNewSize;
+        m_buffer = reinterpret_cast<char *>(pBuffer);
+        m_szBytes = szBytes;
 
         return true;
     }
@@ -93,11 +87,11 @@ public:
     }
 
 private:
-    void *m_buffer;
-    size_t m_szBuffer;
+    char *m_buffer;
+    size_t m_szBytes;
 };
 
-Buffer::Ptr Buffer::Create(size_t szBuffer)
+Buffer::Ptr Buffer::Create(size_t m_szBytes)
 {
-    return make_shared<BufferImpl>(szBuffer);
+    return make_shared<BufferImpl>(m_szBytes);
 }

@@ -34,36 +34,55 @@
 class LineBufferImpl : public LineBuffer
 {
 public:
-    LineBufferImpl(size_t szBuffer)
+    LineBufferImpl(size_t szBytes)
         : m_bOwnsBuffer(true)
-        , m_szIndexBuffer(0)
+        , m_szOffsetBuffer(0)
     {
-        m_pBuffer = Buffer::Create(szBuffer);
+        m_pBuffer = Buffer::Create(szBytes);
     }
 
-    LineBufferImpl(Buffer::Ptr pBuffer, size_t szIndex, bool bOwnsBuffer)
+    LineBufferImpl(Buffer::Ptr pBuffer, size_t szOffset, bool bOwnsBuffer)
         : m_bOwnsBuffer(bOwnsBuffer)
         , m_pBuffer(pBuffer)
-        , m_szIndexBuffer(szIndex)
+        , m_szOffsetBuffer(szOffset)
     {
     }
 
-    LineBufferImpl(const uint8_t *pkBuffer)
+    LineBufferImpl(const char *pkcBuffer)
         : m_bOwnsBuffer(true)
-        , m_szIndexBuffer(0)
+        , m_szOffsetBuffer(0)
     {
-        const char *pkSrc = reinterpret_cast<const char *>(pkBuffer);
-        m_pBuffer = Buffer::Create(::strlen(pkSrc) + 1);
-        char *pDest = reinterpret_cast<char *>(m_pBuffer->GetBuffer());
-        ::strcpy(pDest, pkSrc);
+        m_pBuffer = Buffer::Create(::strlen(pkcBuffer) + 1);
+        ::strcpy(m_pBuffer->GetBuffer(), pkcBuffer);
     }
 
     Ptr Split(size_t szPos) override
     {
-        uint8_t *pntr = getPntrAtPos(szPos);
+        char *pntr = getPntrAtPos(szPos);
         Ptr pNextLine = LineBuffer::Create(pntr);
         *pntr = 0;
         return pNextLine;
+    }
+
+    void WriteBuffer(WriteBufferCallback callback, size_t szPos, size_t szCount) override
+    {
+        char *start = getPntrAtPos(szPos);
+        char *end = getPntrAtPos(start, szCount);
+
+        callback(start, end - start);
+    }
+
+    void InsertChars(const char *pkcBuffer, size_t szPos) override
+    {
+        insertChars(pkcBuffer, strlen(pkcBuffer), szPos);
+    }
+
+    void InsertChars(Ptr pLineBuffer, size_t szPos) override
+    {
+        pLineBuffer->WriteBuffer([this, szPos](const char *pkcBuffer, size_t szBytes)
+        {
+            insertChars(pkcBuffer, szBytes, szPos);
+        });
     }
 
     ~LineBufferImpl()
@@ -71,12 +90,12 @@ public:
         m_pBuffer.reset();
     }
 
-private:
+protected:
     /// counts the number of UTF8 characters in the line
-    size_t numberOfChars()
+    size_t count() const
     {
         size_t szCount = 0;
-        uint8_t *pntr = m_pBuffer->GetBuffer(m_szIndexBuffer);
+        char *pntr = m_pBuffer->GetBuffer(m_szOffsetBuffer);
         if (pntr)
         {
             while (*pntr)
@@ -98,18 +117,18 @@ private:
     /// @return a pointer to that character.  If szPos points past the last
     ///         last character, it returns the pointer to the end of the line
     ///         which would be the null terminator
-    uint8_t *getPntrAtPos(size_t szPos)
+    char *getPntrAtPos(size_t szPos)
     {
         // at this point, if we haven't allocated any memory for this buffer
         // we need to do it now, allocate at least one char for an empty line
-        if (!m_pBuffer || m_pBuffer->GetBuffer(m_szIndexBuffer) == nullptr)
+        if (!m_pBuffer || m_pBuffer->GetBuffer(m_szOffsetBuffer) == nullptr)
         {
             m_pBuffer = Buffer::Create(1);
             m_bOwnsBuffer = true;
-            m_szIndexBuffer = 0;
+            m_szOffsetBuffer = 0;
         }
 
-        uint8_t *pntr = m_pBuffer->GetBuffer(m_szIndexBuffer);
+        char *pntr = m_pBuffer->GetBuffer(m_szOffsetBuffer);
         return getPntrAtPos(pntr, szPos);
     }
 
@@ -120,7 +139,7 @@ private:
     /// @return a pointer szPos characters away, if szPos points past the
     ///         end of the line, it returns the pointer to the eol, which
     ///         would be the null terminator
-    uint8_t *getPntrAtPos(uint8_t *pntr, size_t szPos)
+    char *getPntrAtPos(char *pntr, size_t szPos)
     {
         size_t szCurrentPos = 0;
         if (pntr)
@@ -141,58 +160,83 @@ private:
         return pntr;
     }
 
+
+    /// expand buffer to accept new characters
+    ///
+    /// @param[in] szBytes additional amount of characters
+
+    void expandBuffer(size_t szBytes)
+    {
+        size_t szCurrentBytes = ::strlen(m_pBuffer->GetBuffer());
+        reallocateBuffer(szBytes + szCurrentBytes);
+    }
+
+
     /// reallocate the buffer to a new size
     ///
-    /// @param[in] szNewBuffer the size of the buffer to reallocate
+    /// @param[in] szBytes the size of the buffer to reallocate.  Adds one to accomodate
+    ///            the null terminator
 
-    void reallocateBuffer(size_t szNewBuffer)
+    void reallocateBuffer(size_t szBytes)
     {
         if (m_bOwnsBuffer)
         {
             // add null terminator to requested size
-            m_pBuffer->Reallocate(szNewBuffer + 1);
+            m_pBuffer->Reallocate(szBytes + 1);
         }
         else
         {
-            Buffer::Ptr pNewBuffer = Buffer::Create(szNewBuffer + 1);
+            Buffer::Ptr pNewBuffer = Buffer::Create(szBytes + 1);
 
             // do we need to copy anything from the existing buffer?
-            const char *pkcSource = reinterpret_cast<const char *>(m_pBuffer->GetBuffer(m_szIndexBuffer));
+            const char *pkcSource = m_pBuffer->GetBuffer(m_szOffsetBuffer);
             size_t szSource = 0;
             if (pkcSource && (szSource = ::strlen(pkcSource)))
             {
-                if (szSource > szNewBuffer)
+                if (szSource > szBytes)
                 {
-                    szSource = szNewBuffer;
+                    szSource = szBytes;
                 }
-                char *pcDest = reinterpret_cast<char *>(pNewBuffer->GetBuffer());
-                ::strncpy(pcDest, pkcSource, szSource);
+                ::strncpy(pNewBuffer->GetBuffer(), pkcSource, szSource);
             }
 
             // we now own the buffer
             m_pBuffer = pNewBuffer;
-            m_szIndexBuffer = 0;
+            m_szOffsetBuffer = 0;
             m_bOwnsBuffer = true;
+        }
+    }
+
+    void insertChars(const char *pkcBuffer, size_t szBytes, size_t szPos)
+    {
+        if (szBytes)
+        {
+            expandBuffer(szBytes);
+            char *pkcStart = getPntrAtPos(szPos);
+            size_t szBytesToMove = ::strlen(pkcStart);
+            ::memmove(pkcStart + szBytes, pkcStart, szBytesToMove);
+            ::memmove(pkcStart, pkcBuffer, szBytes);
+            *(pkcStart + szBytes + szBytesToMove) = 0;
         }
     }
 
 private:
     bool m_bOwnsBuffer;
     Buffer::Ptr m_pBuffer;
-    size_t m_szIndexBuffer;
+    size_t m_szOffsetBuffer;
 };
 
-LineBuffer::Ptr LineBuffer::Create(size_t szBuffer)
+LineBuffer::Ptr LineBuffer::Create(size_t szBytes)
 {
-    return make_shared<LineBufferImpl>(szBuffer);
+    return make_shared<LineBufferImpl>(szBytes);
 }
 
-LineBuffer::Ptr LineBuffer::Create(Buffer::Ptr pBuffer, size_t szIndex, bool bOwnsBuffer)
+LineBuffer::Ptr LineBuffer::Create(Buffer::Ptr pBuffer, size_t szOffset, bool bOwnsBuffer)
 {
-    return make_shared<LineBufferImpl>(pBuffer, szIndex, bOwnsBuffer);
+    return make_shared<LineBufferImpl>(pBuffer, szOffset, bOwnsBuffer);
 }
 
-LineBuffer::Ptr LineBuffer::Create(const uint8_t *pkBuffer)
+LineBuffer::Ptr LineBuffer::Create(const char *pkcBuffer)
 {
-    return make_shared<LineBufferImpl>(pkBuffer);
+    return make_shared<LineBufferImpl>(pkcBuffer);
 }

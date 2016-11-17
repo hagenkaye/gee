@@ -33,7 +33,7 @@ $(BUILD_DIR)/test.o : test.cpp
 $(BUILD_DIR)/Buffer_Tests.o : Buffer_Tests.cpp Buffer.cpp Buffer.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-$(BUILD_DIR)/LineBuffer_Tests.o : LineBuffer_Tests.cpp LineBuffer.cpp LineBuffer.h
+$(BUILD_DIR)/LineBuffer_Tests.o : LineBuffer_Tests.cpp LineBuffer.cpp LineBuffer.h Utilities.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 test : $(TEST_OBJS)

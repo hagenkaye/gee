@@ -42,20 +42,20 @@ public:
     ///
     /// Creates a buffer suitable for storing a small amount of text
     ///
-    /// @param[in] szBuffer size of buffer to allocate in bytes
+    /// @param[in] szBytes size of buffer to allocate in bytes
     /// @return a shared_ptr to a buffer
 
-    static Ptr Create(size_t szBuffer = 80);
+    static Ptr Create(size_t szBytes = 80);
 
     ///
     /// Return a pointer to the buffer suitable for processing text
     ///
-    /// @param[in] szIndex index offset into the allocated buffer
-    /// @param[in] szLength optional parameter indicating the anticipated length needed
+    /// @param[in] szOffset offset into the allocated buffer
+    /// @param[in] szBytes optional parameter indicating the anticipated number of bytes needed
     /// @param[in] bRealloc if true, then realloc buffer to accomodate index and length
     /// @return a pointer to the buffer, null if out of bounds
 
-    virtual uint8_t *GetBuffer(size_t szIndex = 0, size_t szLength = 0, bool bRealloc = false) = 0;
+    virtual char *GetBuffer(size_t szOffset = 0, size_t szBytes = 0, bool bRealloc = false) = 0;
 
     ///
     /// Get the allocated size of the buffer
@@ -67,10 +67,10 @@ public:
     ///
     /// Reallocate the buffer to a new size
     ///
-    /// @param[in] szNewSize the new size of the buffer
+    /// @param[in] szBytes the new size of the buffer
     /// @return true if allocation was successful, false otherwise
 
-    virtual bool Reallocate(size_t szNewSize) = 0;
+    virtual bool Reallocate(size_t szBytes) = 0;
 
 protected:
     ///
