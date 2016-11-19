@@ -1,7 +1,7 @@
 VPATH = src test
 BUILD_DIR = build
 CXX = g++
-CXXFLAGS = -std=c++11 -Wall -Isrc -c
+CXXFLAGS = -std=c++11 -Wall -Isrc -c -g
 LFLAGS = -Wall 
 
 OBJS = $(BUILD_DIR)/Buffer.o \
