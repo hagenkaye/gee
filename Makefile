@@ -5,7 +5,8 @@ CXXFLAGS = -std=c++11 -Wall -Isrc -c
 LFLAGS = -Wall 
 
 OBJS = $(BUILD_DIR)/Buffer.o \
-       $(BUILD_DIR)/LineBuffer.o
+       $(BUILD_DIR)/LineBuffer.o \
+       $(BUILD_DIR)/Utilities.o
 
 all : create_build_dir gee test
 
@@ -15,7 +16,10 @@ $(BUILD_DIR)/main.o : main.cpp Platform.h
 $(BUILD_DIR)/Buffer.o : Buffer.cpp Buffer.h Platform.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-$(BUILD_DIR)/LineBuffer.o : LineBuffer.cpp LineBuffer.h Buffer.h Platform.h
+$(BUILD_DIR)/LineBuffer.o : LineBuffer.cpp LineBuffer.h Buffer.h Utilities.h Platform.h
+	$(CXX) $(CXXFLAGS) $< -o $@
+
+$(BUILD_DIR)/Utilities.o : Utilities.cpp Utilities.h Platform.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 GEE_OBJS = $(OBJS) $(BUILD_DIR)/main.o

@@ -30,6 +30,9 @@
 /// A class that stores and operates on a line of text
 ///
 #include "LineBuffer.h"
+#include "Utilities.h"
+
+using namespace Util;
 
 class LineBufferImpl : public LineBuffer
 {
@@ -67,14 +70,15 @@ public:
     void WriteBuffer(WriteBufferCallback callback, size_t szPos, size_t szCount) override
     {
         char *start = getPntrAtPos(szPos);
-        char *end = getPntrAtPos(start, szCount);
+        char *end = advancePntrToNextUTF8char(start, szCount);
 
         callback(start, end - start);
     }
 
-    void InsertChars(const char *pkcBuffer, size_t szPos) override
+    bool InsertChars(const char *pkcBuffer, size_t szPos) override
     {
         insertChars(pkcBuffer, strlen(pkcBuffer), szPos);
+        return true;
     }
 
     void InsertChars(Ptr pLineBuffer, size_t szPos) override
@@ -91,25 +95,6 @@ public:
     }
 
 protected:
-    /// counts the number of UTF8 characters in the line
-    size_t count() const
-    {
-        size_t szCount = 0;
-        char *pntr = m_pBuffer->GetBuffer(m_szOffsetBuffer);
-        if (pntr)
-        {
-            while (*pntr)
-            {
-                if (((*pntr & 0x80) == 0) || (*pntr & 0xC0) == 0xC0)
-                {
-                    szCount++;
-                }
-                pntr++;
-            }
-        }
-        return szCount;
-    }
-
     ///
     /// gets a pointer at n UTF8 character in the buffer
     ///
@@ -129,36 +114,9 @@ protected:
         }
 
         char *pntr = m_pBuffer->GetBuffer(m_szOffsetBuffer);
-        return getPntrAtPos(pntr, szPos);
+        return advancePntrToNextUTF8char(pntr, szPos);
     }
 
-    /// given a pointer to a buffer, returns a pointer n chars away
-    ///
-    /// @param[in] pntr a pointer in the buffer
-    /// @param[in] szPos number of characters to advance pntr
-    /// @return a pointer szPos characters away, if szPos points past the
-    ///         end of the line, it returns the pointer to the eol, which
-    ///         would be the null terminator
-    char *getPntrAtPos(char *pntr, size_t szPos)
-    {
-        size_t szCurrentPos = 0;
-        if (pntr)
-        {
-            while (*pntr)
-            {
-                if (szCurrentPos == szPos)
-                {
-                    break;
-                }
-                if (((*pntr & 0x80) == 0) || (*pntr & 0xC0) == 0xC0)
-                {
-                    szCurrentPos++;
-                }
-                pntr++;
-            }
-        }
-        return pntr;
-    }
 
 
     /// expand buffer to accept new characters

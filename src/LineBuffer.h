@@ -60,9 +60,9 @@ public:
     ///
     /// Creates a LineBuffer from an existing Buffer object
     ///
-    /// param[in] pBuffer The buffer object to use
-    /// param[in] szOffset The index into pBuffer
-    /// param[in] bOwnsBuffer if true then the LineBuffer will own the Buffer
+    /// @param[in] pBuffer The buffer object to use
+    /// @param[in] szOffset The index into pBuffer
+    /// @param[in] bOwnsBuffer if true then the LineBuffer will own the Buffer
     ///           object
     /// @return a shared_ptr to a LineBuffer
 
@@ -73,7 +73,7 @@ public:
     ///
     /// A buffer is allocated and the string is copied into the line buffer
     ///
-    /// param[in] pkcBuffer a null terminated string to copy into the buffer
+    /// @param[in] pkcBuffer a null terminated string to copy into the buffer
     /// @return a shared_ptr to a LineBuffer
 
     static Ptr Create(const char *pkcBuffer);
@@ -91,13 +91,23 @@ public:
     ///
     /// Writes out a portion of the buffer to the by calling the supplied callback
     ///
-    /// param[in] callback Callback function to callback
-    /// param[in] szPos character position in LineBuffer to start
-    /// param[in] szCount maximum characters to WriteBuffer
+    /// @param[in] callback Callback function to callback
+    /// @param[in] szPos character position in LineBuffer to start
+    /// @param[in] szCount maximum characters to WriteBuffer
 
     virtual void WriteBuffer(WriteBufferCallback callback, size_t szPos = 0, size_t szCount = std::numeric_limits<size_t>::max()) = 0;
 
-    virtual void InsertChars(const char *pkcBuffer, size_t szPos = std::numeric_limits<size_t>::max()) = 0;
+    ///
+    /// Inserts characters into LineBuffer
+    ///
+    /// This function can only insert a string that doesn't have a line break, in other words
+    /// it won't split lines or create more LineBuffers to perform the insertion
+    ///
+    /// @param[in] pkcBuffer string of characters to insert
+    /// @param[in] szPos position in LineBuffer to do the insertion, by default this is the end
+    /// @return true if insertion was done, false if it failed (see reason above)
+
+    virtual bool InsertChars(const char *pkcBuffer, size_t szPos = std::numeric_limits<size_t>::max()) = 0;
 
     virtual void InsertChars(Ptr pLineBuffer, size_t szPos = std::numeric_limits<size_t>::max()) = 0;
 

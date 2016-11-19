@@ -27,11 +27,27 @@
 ///
 /// @section DESCRIPTION
 ///
-/// Common typedefs, declarations and utilies for gee
+/// Common typedefs, declarations and utilies for gee and common utility functions
 ///
 #ifndef Utilities_h
 #define Utilities_h
+#include "Platform.h"
 
 typedef function<void (const char *, size_t)>WriteBufferCallback;
+
+namespace Util
+{
+enum LineEnding
+{
+    NONE = 0,
+    LF,
+    CRLF,
+    CR,
+};
+
+size_t numUTF8chars(const char *pkcBuffer);
+char *advancePntrToNextUTF8char(char *pcBuffer, size_t szCount = 1);
+char *nextLine(char *pcBuffer, LineEnding &rLineEnding, bool bMoreToCome = false);
+}
 
 #endif
